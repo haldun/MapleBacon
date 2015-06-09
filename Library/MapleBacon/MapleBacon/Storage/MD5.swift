@@ -31,16 +31,15 @@ class MD5 {
 
     func calculate() -> NSData {
         let lengthInBits = message.length * 8
-        var lengthBytes = lengthInBits.bytes(64 / 8)
-        var tmpMessage = prepare()
-        tmpMessage.appendBytes(reverse(lengthBytes), length: lengthBytes.count)
+        let lengthBytes = lengthInBits.bytes(64 / 8)
+        let tmpMessage = prepare()
+        tmpMessage.appendBytes(Array(lengthBytes.reverse()), length: lengthBytes.count)
 
         let chunkSizeBytes = 512 / 8
         var leftMessageBytes = tmpMessage.length
         var hh = [UInt32](count: 4, repeatedValue: 0)
         for var i = 0; i < tmpMessage.length; i += chunkSizeBytes, leftMessageBytes -= chunkSizeBytes {
             let chunk = tmpMessage.subdataWithRange(NSRange(location: i, length: min(chunkSizeBytes, leftMessageBytes)))
-            let bytes = tmpMessage.bytes
 
             var M: [UInt32] = [UInt32](count: 16, repeatedValue: 0)
             let range = NSRange(location: 0, length: M.count * sizeof(UInt32))
@@ -91,7 +90,7 @@ class MD5 {
     }
 
     private func prepare() -> NSMutableData {
-        var paddedMessage = NSMutableData(data: message)
+        let paddedMessage = NSMutableData(data: message)
         paddedMessage.appendBytes([0x80], length: 1)
         var messageLength = paddedMessage.length
         var counter = 0
@@ -99,7 +98,7 @@ class MD5 {
             ++counter
             ++messageLength
         }
-        var buffer = UnsafeMutablePointer<UInt8>(calloc(counter, sizeof(UInt8)))
+        let buffer = UnsafeMutablePointer<UInt8>(calloc(counter, sizeof(UInt8)))
         paddedMessage.appendBytes(buffer, length: counter)
         buffer.destroy()
         buffer.dealloc(1)
@@ -137,15 +136,15 @@ extension NSData {
 
 extension Int {
 
-    func bytes(_ totalBytes: Int = sizeof(Int)) -> [UInt8] {
+    func bytes(totalBytes: Int = sizeof(Int)) -> [UInt8] {
         return arrayOfBytes(self, length: totalBytes)
     }
 
     private func arrayOfBytes(value: Int, length: Int) -> [UInt8] {
-        var valuePointer = UnsafeMutablePointer<Int>.alloc(1)
+        let valuePointer = UnsafeMutablePointer<Int>.alloc(1)
         valuePointer.memory = value
 
-        var bytesPointer = UnsafeMutablePointer<UInt8>(valuePointer)
+        let bytesPointer = UnsafeMutablePointer<UInt8>(valuePointer)
         var bytes = [UInt8](count: length, repeatedValue: 0)
         for j in 0 ..< length {
             bytes[length - 1 - j] = (bytesPointer + j).memory

@@ -4,6 +4,7 @@
 
 import UIKit
 
+
 public typealias ResizerCompletion = (UIImage) -> Void
 
 public class Resizer {
@@ -129,15 +130,22 @@ public class Resizer {
                                       usingTransform transform: CGAffineTransform, drawTransposed transpose: Bool,
                                       interpolationQuality quality: CGInterpolationQuality) -> UIImage? {
         let newRect = CGRectIntegral(CGRect(x: 0, y: 0, width: size.width, height: size.height))
-        let transposedRect = CGRect(x: 0, y: 0, width: newRect.size.height, height: newRect.size.width)
-        let imageRef = image.CGImage
-        let bitmap = CGBitmapContextCreate(nil, Int(newRect.size.width), Int(newRect.size.height),
-                CGImageGetBitsPerComponent(imageRef), CGImageGetBytesPerRow(imageRef) * Int(deviceScale),
-                CGImageGetColorSpace(imageRef), CGImageGetBitmapInfo(imageRef))
-        CGContextConcatCTM(bitmap, transform)
-        CGContextSetInterpolationQuality(bitmap, quality)
-        CGContextDrawImage(bitmap, transpose ? transposedRect : newRect, imageRef)
-        return UIImage(CGImage: CGBitmapContextCreateImage(bitmap))
+        let transposedRect = CGRect(x: 0, y: 0, width: CGRectGetWidth(newRect), height: CGRectGetHeight(newRect))
+        if let imageRef = image.CGImage {
+            let bitmap = CGBitmapContextCreate(nil,
+                Int(CGRectGetWidth(newRect)),
+                Int(CGRectGetHeight(newRect)),
+                CGImageGetBitsPerComponent(imageRef),
+                0,
+                CGImageGetColorSpace(imageRef),
+                CGImageGetBitmapInfo(imageRef).rawValue
+            )
+            CGContextConcatCTM(bitmap, transform)
+            CGContextSetInterpolationQuality(bitmap, quality)
+            CGContextDrawImage(bitmap, transpose ? transposedRect : newRect, imageRef)
+            return UIImage(CGImage: CGBitmapContextCreateImage(bitmap))
+        }
+        return nil
     }
 
     private class func transformForOrientationImage(image: UIImage, toSize size: CGSize) -> CGAffineTransform {

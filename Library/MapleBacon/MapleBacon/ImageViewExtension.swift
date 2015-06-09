@@ -35,7 +35,7 @@ extension UIImageView {
         }
         set {
             objc_setAssociatedObject(self, &ImageViewAssociatedObjectHandle, newValue,
-                    objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
