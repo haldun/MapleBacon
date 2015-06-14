@@ -4,7 +4,7 @@
 
 import UIKit
 
-public class DiskStorage: Storage {
+public final class DiskStorage: Storage {
 
     let fileManager: NSFileManager = {
         return NSFileManager.defaultManager()
@@ -16,14 +16,7 @@ public class DiskStorage: Storage {
 
     public var maxAge: NSTimeInterval = 60 * 60 * 24 * 7
 
-    public class var sharedStorage: DiskStorage {
-
-        struct Singleton {
-            static let instance = DiskStorage()
-        }
-
-        return Singleton.instance
-    }
+    public static let sharedStorage = DiskStorage()
 
     public convenience init() {
         self.init(name: "default")
@@ -32,7 +25,6 @@ public class DiskStorage: Storage {
     public init(name: String) {
         let paths = NSSearchPathForDirectoriesInDomains(.CachesDirectory, .UserDomainMask, true)
         storagePath = paths.first!.stringByAppendingPathComponent("de.zalando.MapleBacon.\(name)")
-
         do {
             try fileManager.createDirectoryAtPath(storagePath, withIntermediateDirectories: true, attributes: nil)
         } catch _ {
@@ -69,34 +61,34 @@ public class DiskStorage: Storage {
                 enumerator.skipDescendants()
                 continue
             }
-            if let modificationDate = self.modificationDate(fileURL) {
-                if modificationDate.laterDate(expirationDate) == expirationDate {
-                    expiredFiles.append(fileURL)
-                }
+            if let modificationDate = self.modificationDate(fileURL) where modificationDate.laterDate(expirationDate) == expirationDate {
+                expiredFiles.append(fileURL)
             }
         }
         return expiredFiles
     }
 
     private func isDirectory(fileURL: NSURL) -> Bool {
-        var isDirectoryResource: AnyObject?
         do {
+            var isDirectoryResource: AnyObject?
             try fileURL.getResourceValue(&isDirectoryResource, forKey: NSURLIsDirectoryKey)
+            if let isDirectory = isDirectoryResource as? NSNumber {
+                return isDirectory.boolValue
+            }
         } catch _ {
-        }
-        if let isDirectory = isDirectoryResource as? NSNumber {
-            return isDirectory.boolValue
+            return false
         }
         return false
     }
 
     private func modificationDate(fileURL: NSURL) -> NSDate? {
-        var modificationDateResource: AnyObject?
         do {
+            var modificationDateResource: AnyObject?
             try fileURL.getResourceValue(&modificationDateResource, forKey: NSURLContentModificationDateKey)
+            return modificationDateResource as? NSDate
         } catch _ {
+            return nil
         }
-        return modificationDateResource as? NSDate
     }
 
     private func deleteExpiredFiles(files: [NSURL]) {
@@ -109,10 +101,10 @@ public class DiskStorage: Storage {
     }
 
     public func image(forKey key: String) -> UIImage? {
-        if let data = NSData(contentsOfFile: defaultStoragePath(forKey: key)) {
-            return UIImage.imageWithCachedData(data)
+        guard let data = NSData(contentsOfFile: defaultStoragePath(forKey: key)) else {
+            return nil
         }
-        return nil
+        return UIImage.imageWithCachedData(data)
     }
 
     private func defaultStoragePath(forKey key: String) -> String {

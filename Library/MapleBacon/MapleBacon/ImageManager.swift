@@ -4,7 +4,7 @@
 
 import UIKit
 
-public class ImageManager {
+public final class ImageManager {
 
     private var downloadsInProgress = [NSURL: ImageDownloadOperation]()
     private var downloadQueue: NSOperationQueue {
@@ -13,14 +13,7 @@ public class ImageManager {
         return queue
     }
 
-    public class var sharedManager: ImageManager {
-
-        struct Singleton {
-            static let instance = ImageManager()
-        }
-
-        return Singleton.instance
-    }
+    public static let sharedManager = ImageManager()
 
     deinit {
         downloadQueue.cancelAllOperations()
@@ -36,18 +29,20 @@ public class ImageManager {
                 let downloadOperation = ImageDownloadOperation(imageURL: url)
                 downloadOperation.qualityOfService = .UserInitiated
                 downloadOperation.completionHandler = {
-                    [unowned self] (imageInstance, _) in
-                    self.downloadsInProgress[url] = nil
-                    if let newImage = imageInstance?.image {
-                        if cacheScaled && imageView != nil && newImage.images == nil {
-                            self.resizeAndStoreImage(newImage, imageView: imageView!, storage: storage,
-                                    key: url.absoluteString)
-                        } else if let imageData = imageInstance?.data {
-                            storage.storeImage(newImage, data: imageData, forKey: url.absoluteString)
-                        }
-
-                        completion?(ImageInstance(image: newImage, state: .New, url: imageInstance?.url), nil)
+                    [weak self] imageInstance, _ in
+                    self?.downloadsInProgress[url] = nil
+                    
+                    guard let newImage = imageInstance?.image else {
+                        return
                     }
+                    if let imageView = imageView where cacheScaled && newImage.images == nil {
+                        self?.resizeAndStoreImage(newImage, imageView: imageView, storage: storage,
+                                key: url.absoluteString)
+                    } else if let imageData = imageInstance?.data {
+                        storage.storeImage(newImage, data: imageData, forKey: url.absoluteString)
+                    }
+
+                    completion?(ImageInstance(image: newImage, state: .New, url: imageInstance?.url), nil)
                 }
                 downloadsInProgress[url] = downloadOperation
                 downloadQueue.addOperation(downloadOperation)

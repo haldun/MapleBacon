@@ -10,7 +10,7 @@ public protocol ImageDownloaderDelegate {
     func imageDownloaderDelegate(downloader: ImageDownloadOperation, didReportProgress progress: NSProgress);
 }
 
-public class ImageDownloadOperation: NSOperation {
+public final class ImageDownloadOperation: NSOperation {
 
     private var imageURL: NSURL
     private var delegate: ImageDownloaderDelegate?
@@ -47,10 +47,11 @@ public class ImageDownloadOperation: NSOperation {
     }
 
     private func resumeDownload() {
-        if let newTask = session?.downloadTaskWithURL(imageURL) {
-            newTask.resume()
-            task = newTask
+        guard let newTask = session?.downloadTaskWithURL(imageURL) else {
+            return
         }
+        newTask.resume()
+        task = newTask
     }
 
 }
@@ -78,10 +79,11 @@ extension ImageDownloadOperation: NSURLSessionDownloadDelegate {
     }
 
     public func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        if let error = error {
-            print("Remote error: \(error), \(error.userInfo)")
-            completionHandler?(nil, error)
+        guard let error = error else {
+            return
         }
+        print("Remote error: \(error), \(error.userInfo)")
+        completionHandler?(nil, error)
     }
 
     public func URLSession(session: NSURLSession, task: NSURLSessionTask,

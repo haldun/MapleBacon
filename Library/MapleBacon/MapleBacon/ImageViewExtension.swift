@@ -8,15 +8,14 @@ var ImageViewAssociatedObjectHandle: UInt8 = 0
 
 extension UIImageView {
 
-    public func setImageWithURL(url: NSURL, cacheScaled: Bool = false) {
+    public final func setImageWithURL(url: NSURL, cacheScaled: Bool = false) {
         setImageWithURL(url, cacheScaled: cacheScaled, completion: nil)
     }
 
-    public func setImageWithURL(url: NSURL, cacheScaled: Bool = false, completion: ImageDownloaderCompletion?) {
+    public final func setImageWithURL(url: NSURL, cacheScaled: Bool = false, completion: ImageDownloaderCompletion?) {
         cancelDownload()
-        let operation = ImageManager.sharedManager.downloadImageAtURL(url, cacheScaled: cacheScaled, imageView: self) {
+        let downloadCompletion: ImageDownloaderCompletion = {
             [weak self] imageInstance, error in
-
             dispatch_async(dispatch_get_main_queue()) {
                 if let image = imageInstance?.image {
                     self?.image = image
@@ -24,9 +23,11 @@ extension UIImageView {
                 completion?(imageInstance, error)
             }
         }
-        if operation != nil {
-            self.operation = operation
+
+        guard let operation = ImageManager.sharedManager.downloadImageAtURL(url, cacheScaled: cacheScaled, imageView: self, completion: downloadCompletion) else {
+            return
         }
+        self.operation = operation
     }
 
     var operation: ImageDownloadOperation? {
@@ -39,7 +40,7 @@ extension UIImageView {
         }
     }
 
-    func cancelDownload() {
+    private final func cancelDownload() {
         operation?.cancel()
     }
 

@@ -4,20 +4,11 @@
 
 import UIKit
 
-public class InMemoryStorage: Storage {
+public final class InMemoryStorage: Storage {
 
-    let cache: NSCache = {
-        return NSCache()
-    }()
-
-    public class var sharedStorage: InMemoryStorage {
-
-        struct Singleton {
-            static let instance = InMemoryStorage()
-        }
-
-        return Singleton.instance
-    }
+    private let cache = NSCache()
+    
+    public static let sharedStorage = InMemoryStorage()
 
     public convenience init() {
         self.init(name: "default")
@@ -32,10 +23,7 @@ public class InMemoryStorage: Storage {
     }
 
     private func cacheCost(forImage image: UIImage) -> Int {
-        var imagesCount = 0
-        if let images = image.images {
-            imagesCount = images.count
-        }
+        let imagesCount = image.images?.count ?? 0
         return imagesCount * Int(image.size.width * image.size.height * image.scale * image.scale)
     }
 

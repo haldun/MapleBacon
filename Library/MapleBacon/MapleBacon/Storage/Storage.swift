@@ -22,19 +22,12 @@ public protocol CombinedStorage {
 
 }
 
-public class MapleBaconStorage: Storage, CombinedStorage {
+public final class MapleBaconStorage: Storage, CombinedStorage {
 
-    let inMemoryStorage: Storage
-    let diskStorage: Storage
+    private let inMemoryStorage: Storage
+    private let diskStorage: Storage
 
-    public class var sharedStorage: MapleBaconStorage {
-
-        struct Singleton {
-            static let instance = MapleBaconStorage()
-        }
-
-        return Singleton.instance
-    }
+    public static let sharedStorage = MapleBaconStorage()
 
     init() {
         inMemoryStorage = InMemoryStorage.sharedStorage

@@ -7,7 +7,7 @@ import UIKit
 
 public typealias ResizerCompletion = (UIImage) -> Void
 
-public class Resizer {
+public final class Resizer {
 
     private static let deviceScale = UIScreen.mainScreen().scale
 
