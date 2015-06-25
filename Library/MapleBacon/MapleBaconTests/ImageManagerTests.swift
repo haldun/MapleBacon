@@ -20,17 +20,16 @@ class ImageManagerTests: XCTestCase {
         let downloadedImageExpectation = expectationWithDescription("Testing Downloaded Image")
 
         imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
-            [unowned self] (imageInstance, _) in
-            if let imageInstance = imageInstance {
-                if imageInstance.state == .New {
-                    downloadedImageExpectation.fulfill()
-                    XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
-                            "Image downloaded but manager still has downloads in progress")
-                }
+            [unowned self] imageInstance, _ in
+            guard let imageInstance = imageInstance where imageInstance.state == .New else {
+                return
             }
+            downloadedImageExpectation.fulfill()
+            XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
+                "Image downloaded but manager still has downloads in progress")
         })
         imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
-            [unowned self] (imageInstance, _) in
+            [unowned self] imageInstance, _ in
             if let imageInstance = imageInstance {
                 if imageInstance.state == .Downloading {
                     downloadingImageExpectation.fulfill()
@@ -50,26 +49,23 @@ class ImageManagerTests: XCTestCase {
 
     func test_whenImageManagerAsksForImageAlreadyDownloaded_thenImageIsReturnedFromCache() {
         imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
-            [unowned self] (imageInstance, _) in
-            if let imageInstance = imageInstance {
-                let cachedExpectation = self.expectationWithDescription("Testing Cached Image")
+            [unowned self] imageInstance, _ in
+            let cachedExpectation = self.expectationWithDescription("Testing Cached Image")
 
-                self.imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
-                    [unowned self] (imageInstance, _) in
-                    if let imageInstance = imageInstance {
-                        if imageInstance.state == .Cached {
-                            cachedExpectation.fulfill()
-                            XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
-                                    "Image returned from cache but manager still has downloads in progress")
-                        }
-                    }
-                })
+            self.imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
+                [unowned self] imageInstance, _ in
+                guard let imageInstance = imageInstance where imageInstance.state == .Cached else {
+                    return
+                }
+                cachedExpectation.fulfill()
+                XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
+                    "Image returned from cache but manager still has downloads in progress")
+            })
 
-                self.waitForExpectationsWithTimeout(timeout) {
-                    error in
-                    if (error != nil) {
-                        XCTFail("Expectation failed")
-                    }
+            self.waitForExpectationsWithTimeout(timeout) {
+                error in
+                if (error != nil) {
+                    XCTFail("Expectation failed")
                 }
             }
         })
@@ -81,13 +77,12 @@ class ImageManagerTests: XCTestCase {
 
         imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, completion: {
             [unowned self] imageInstance, error -> Void in
-            if let imageInstance = imageInstance {
-                if imageInstance.state == .New {
-                    newImageExpectation.fulfill()
-                    XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
-                            "Image downloaded but manager still has downloads in progress")
-                }
+            guard let imageInstance = imageInstance where imageInstance.state == .New else {
+                return
             }
+            XCTAssertFalse(self.imageManager.hasDownloadsInProgress(),
+                "Image downloaded but manager still has downloads in progress")
+            newImageExpectation.fulfill()
         })
 
         waitForExpectationsWithTimeout(timeout) {
@@ -105,11 +100,9 @@ class ImageManagerTests: XCTestCase {
         let newImageExpectation = expectationWithDescription("Testing New Image")
 
         imageManager.downloadImageAtURL(NSURL(string: imageURL)!, cacheScaled: false, imageView: nil, storage: storage) {
-            [unowned self] (imageInstance, _) in
-            if let imageInstance = imageInstance {
-                newImageExpectation.fulfill()
-                XCTAssertNotNil(storage.image(forKey: imageURL))
-            }
+            imageInstance, _ in
+            newImageExpectation.fulfill()
+            XCTAssertNotNil(storage.image(forKey: imageURL))
         }
 
         waitForExpectationsWithTimeout(timeout) {

@@ -25,7 +25,7 @@ class ImageDownloadOperationTests: XCTestCase {
 
         let operation = ImageDownloadOperation(imageURL: NSURL(string: imageURL)!)
         operation.completionHandler = {
-            (imageInstance, error) in
+            imageInstance, error in
             expectation.fulfill()
             XCTAssertNotNil(imageInstance?.image, "Task finished but image was nil")
             XCTAssertNil(error, "Task with invalid url finished and error wasn't nil")
@@ -45,8 +45,8 @@ class ImageDownloadOperationTests: XCTestCase {
 
         let operation = ImageDownloadOperation(imageURL: NSURL(string: imageURL)!)
         operation.completionHandler = {
-            (imageInstance, error) in
-            if (error == nil) {
+            imageInstance, error in
+            if error == nil {
                 downloadExpectation.fulfill()
                 XCTAssertNotNil(imageInstance?.image, "Task finished but image was nil")
                 XCTAssertNil(error)
@@ -69,8 +69,8 @@ class ImageDownloadOperationTests: XCTestCase {
 
         let operation = ImageDownloadOperation(imageURL: NSURL(string: imageURL)!)
         operation.completionHandler = {
-            (imageInstance, error) in
-            if (error != nil) {
+            imageInstance, error in
+            if error != nil {
                 cancelExpectation.fulfill()
                 XCTAssertNil(imageInstance?.image, "Task finished but image was nil")
                 XCTAssertNotNil(error)
@@ -94,8 +94,8 @@ class ImageDownloadOperationTests: XCTestCase {
 
         let operation = ImageDownloadOperation(imageURL: NSURL(string: redirectURL)!)
         operation.completionHandler = {
-            (imageInstance, _) in
-            if (imageInstance != nil) {
+            imageInstance, _ in
+            if imageInstance != nil {
                 let imageURL = imageInstance?.url!.absoluteString
                 if (imageURL != redirectURL) {
                     redirectedExpectation.fulfill()
@@ -117,8 +117,8 @@ class ImageDownloadOperationTests: XCTestCase {
 
         let operation = ImageDownloadOperation(imageURL: NSURL(string: gifURL)!)
         operation.completionHandler = {
-            (imageInstance, _) in
-            if (imageInstance != nil) {
+            imageInstance, _ in
+            if imageInstance != nil {
                 let image = imageInstance?.image
                 gifExpectation.fulfill()
                 XCTAssert(image?.images?.count > 0, "Requesting GIF image but image doesn't have multiple images")
