@@ -14,13 +14,22 @@ class ResizerResultView: UIView {
     override func drawRect(rect: CGRect) {
         if let contentMode = selectedContentMode, let image = image {
             Resizer.resizeImage(image, contentMode: contentMode, toSize: rect.size,
-                    interpolationQuality: kCGInterpolationHigh, async: false) {
+                    interpolationQuality: CGInterpolationQuality.High, async: false) {
                 resizedImage in
-                let xOffset = rect.size.width > resizedImage.size.width / self.deviceScale ? (rect.size.width - resizedImage.size.width / self.deviceScale) / 2 : 0
-                let yOffset = rect.size.height > resizedImage.size.height / self.deviceScale ? (rect.size.height - resizedImage.size.height / self.deviceScale) / 2 : 0
-                resizedImage.drawInRect(CGRectMake(xOffset, yOffset, resizedImage.size.width / self.deviceScale, resizedImage.size.height / self.deviceScale))
+                let (xOffset, yOffset) = self.offsetsForImage(resizedImage, inRect: rect)
+                let imageRect = CGRect(x: xOffset, y: yOffset, width: resizedImage.size.width / self.deviceScale,
+                        height: resizedImage.size.height / self.deviceScale)
+                resizedImage.drawInRect(imageRect)
             }
         }
+    }
+
+    private func offsetsForImage(image: UIImage, inRect rect: CGRect) -> (CGFloat, CGFloat) {
+        let rectWidth = CGRectGetWidth(rect)
+        let rectHeight = CGRectGetHeight(rect)
+        let xOffset = rectWidth > image.size.width / deviceScale ? (rectWidth - image.size.width / deviceScale) / 2 : 0
+        let yOffset = rectHeight > image.size.height / deviceScale ? (rectHeight - image.size.height / deviceScale) / 2 : 0
+        return (xOffset, yOffset)
     }
 
 }

@@ -63,7 +63,7 @@ extension ImageExampleViewController {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("ImageCell", forIndexPath: indexPath) as! ImageCell
         if let imageURL = NSURL(string: imageURLs[indexPath.row]) {
             cell.imageView?.setImageWithURL(imageURL) {
-                (_, error) in
+                _, error in
                 if error == nil {
                     let transition = CATransition()
                     cell.imageView?.layer.addAnimation(transition, forKey: "fade")
