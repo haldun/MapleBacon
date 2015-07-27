@@ -7,11 +7,11 @@ import UIKit
 public class ImageManager {
 
     private var downloadsInProgress = [NSURL: ImageDownloadOperation]()
-    private var downloadQueue: NSOperationQueue {
+    private lazy var downloadQueue: NSOperationQueue = {
         let queue = NSOperationQueue()
         queue.maxConcurrentOperationCount = 10
         return queue
-    }
+    }()
 
     public class var sharedManager: ImageManager {
 
